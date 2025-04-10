@@ -58,21 +58,13 @@ int main(int argc, char *argv[]) {
 	int sectorSize = 0;
 	int lba = 0;
 	int address = 0;
-	
+
 	if (argc < 2) {
 		printf("Insufficient number of arguments. Please make sure you provide one filename as the first argument for the program.");
 		return 1;
 	}
-	/*
-	else if (argc == 2) {
-		sectorSize = 2048;
-	}
-	else {
-		sectorSize = atoi(argv[2]);
-	} */
 
 	for (int i = 2; i < argc; i++) {
-		
 		if (strcmp(argv[i], "--lbasize") == 0) {
 			sectorSize = atoi(argv[++i]);
 		}
@@ -112,10 +104,11 @@ int main(int argc, char *argv[]) {
 		lba = (address / sectorSize);
 
 		if (address == secIdent) {
-			printf("\nSector: %d\n________________________________________________________________________________\n", lba);
+			//printf("\nSector: %d\n________________________________________________________________________________\n", lba);
+			printf("\nSector: %d\n_____________0__1__2__3__4__5__6__7___8__9__A__B__C__D__E__F____________________\n", lba);
 			secIdent = (secIdent + sectorSize);
 		}
-		
+
 		printf("%.10X  %.2X %.2X %.2X %.2X %.2X %.2X %.2X %.2X  %.2X %.2X %.2X %.2X %.2X %.2X %.2X %.2X  |", address, \
 			data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], \
 			data[9], data[10], data[11], data[12], data[13], data[14], data[15]);
@@ -131,7 +124,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 		printf("|\n");
-	}	
+	}
 	fclose(fptr);
 	return 0;
 }
@@ -149,6 +142,7 @@ void detectMBRFS(FILE *fptr, int *sectorSize) {
 
 	printf("Analyzing MBR...\n");
 
+
 	for (int i = 0; i < 4; i++) {
 		char* partType = binarySearchFSTypes(0, (NUM_FS_TYPES - 1), partitionIDs[i]);
 		if (strcmp(partType, "No Partition/ISO9660") != 0) {
@@ -158,13 +152,13 @@ void detectMBRFS(FILE *fptr, int *sectorSize) {
 	}
 
 	if (isIso) {
-		printf("Detected ISO9660 file system - recommend sector size 2048\n");
+		printf("Detected ISO9660 file system, defaulting to 2048 sector size\n");
 		if (!(*sectorSize)) {
 			*sectorSize = 2048;
 		}
 	}
 	else {
-		printf("Detected disk image - recommend sector size 512");
+		printf("Detected disk image, defaulting to 512 sector size");
 		if (!(*sectorSize)) {
 			*sectorSize = 512;
 		}
@@ -189,4 +183,4 @@ char* binarySearchFSTypes(short low, short high, unsigned char partitionID) {
 		return FILESYSTEMS[mid].value;
 	}
 	return "Unknown filesystem or no partition";
-}	
+}
