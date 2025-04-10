@@ -1,3 +1,5 @@
 *.o
 *.out
 dec0de
+testimgs
+.vscode
