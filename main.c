@@ -9,21 +9,22 @@ int main(int argc, char *argv[]) {
 	int lba = 0;
 	int address = 0;
 
+	if (strcmp(argv[1], "--help") == 0) {
+		printf("0xdec0de\n");
+		printf("--help: shows this menu.\n");
+		printf("--lbasize $SIZE: specify the LBA size to divide the output into, in bytes.\n");
+		printf("--sector $SECTOR: specify the sector to begin the output.\n");
+		printf("--address $ADDRESS: specify the address to begin the output, as a hexadecimal offset from 0, rounded down to the nearest 16-byte line.\n");
+		printf("If both --sector and --address are present, output will begin from the point specified by --sector.\n");
+		return 0;
+	}
+
 	if (argc < 2) {
 		printf("Insufficient number of arguments. Please make sure you provide one filename as the first argument for the program.");
 		return 1;
 	}
 
 	for (int i = 2; i < argc; i++) {
-		if (strcmp(argv[i], "--help") == 0) {
-			printf("0xdec0de\n\
-				--help: shows this menu.\n\
-				--lbasize $SIZE: specify the LBA size to divide the output into, in bytes.\n\
-				--sector $SECTOR: specify the sector to begin the output.\n\
-				--address $ADDRESS: specify the address to begin the output, as a hexadecimal offset from 0, rounded down to the nearest 16-byte line.\n\
-				If both --sector and --address are present, output will begin from the point specified by --sector.\n");
-			return 0;
-		}
 		if (strcmp(argv[i], "--lbasize") == 0) {
 			sectorSize = atoi(argv[++i]);
 		}
