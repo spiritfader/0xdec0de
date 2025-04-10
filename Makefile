@@ -3,7 +3,7 @@ CFLAGS := -g -O2 -Os -fdiagnostics-color=always
 CXXFLAGS := $(CFLAGS) -fno-exceptions -fno-rtti
 
 make: main.o fsinfo.o
-	$(CC) $(CFLAGS) main.o fsinfo.o -o fsparse
+	$(CC) $(CFLAGS) main.o fsinfo.o -o dec0de
 
 main.o: main.c fsinfo.h
 	$(CC) $(CFLAGS) -c main.c -o main.o
