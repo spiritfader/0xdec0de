@@ -6,7 +6,7 @@ fstype FILESYSTEMS[NUM_FS_TYPES] = {
 	{.key = 0x04, .value = "FAT16"},
 	{.key = 0x05, .value = "DOS extended partiton"},
 	{.key = 0x06, .value = "FAT16 (DOS 3.31+ Large FS)"},
-	{.key = 0x07, .value = "NTFS/HPFS"},
+	{.key = 0x07, .value = "NTFS/HPFS/exFAT"},
 	{.key = 0x0A, .value = "Apple HPFS"},
 	{.key = 0x0B, .value = "W95 FAT32"},
 	{.key = 0x0C, .value = "W95 FAT32 (LBA mode)"},
@@ -43,25 +43,40 @@ fstype FILESYSTEMS[NUM_FS_TYPES] = {
 };
 
 void detectMBRFS(FILE *fptr, int *sectorSize) {
-	unsigned char partitionID;
-	unsigned char partitionIDs[4];
+	partinfo partitionsInfo[4];
 	
 	for (int i = 0; i < 4; i++) {
-		fseek(fptr, (0x1C2 + (0x10 * i)), SEEK_SET);
-		partitionID = fread((partitionIDs+i), sizeof(unsigned char), 1, fptr);
+		fseek(fptr, (0x1BE + (0x10 * i)), SEEK_SET);
+		fread((partitionsInfo+i), sizeof(unsigned char), 16, fptr);
 	}
 
 	int isIso = 1;
 
-	printf("Analyzing MBR...\n");
+	printf("Analyzing MBR...\n\n");
 
 
 	for (int i = 0; i < 4; i++) {
-		char* partType = binarySearchFSTypes(0, (NUM_FS_TYPES - 1), partitionIDs[i]);
-		if (strcmp(partType, "No Partition/ISO9660") != 0) {
+		fstype partType = binarySearchFSTypes(0, (NUM_FS_TYPES - 1), partitionsInfo[i].fsID);
+		if (strcmp(partType.value, "No Partition/ISO9660") != 0) {
 			isIso = 0;
 		}
-		printf("Partition %d type: %s\n", i, partType);
+		printf("Partition %d type: %s\n", (i + 1), partType.value);
+		printf("Status: ");
+		switch (partitionsInfo[i].status) {
+			case 0:
+				printf("Inactive/Non-bootable");
+				break;
+			default:
+				if (partitionsInfo[i].status | 0x80) {
+					printf("Active/Bootable");
+				}
+				else {
+					printf("Invalid");
+				}
+		}
+		printf("\nSize: %.2f MB\n", ((float)(512 * partitionsInfo[i].sectorCount) / 1048576.0));
+		printf("Start sector: %d\n\n", partitionsInfo[i].firstLBA);
+		
 	}
 
 	if (isIso) {
@@ -71,7 +86,7 @@ void detectMBRFS(FILE *fptr, int *sectorSize) {
 		}
 	}
 	else {
-		printf("Detected disk image, defaulting to 512 sector size");
+		printf("Detected MBR disk image, defaulting to 512 sector size\n");
 		if (!(*sectorSize)) {
 			*sectorSize = 512;
 		}
@@ -81,7 +96,7 @@ void detectMBRFS(FILE *fptr, int *sectorSize) {
 	return;
 }
 
-char* binarySearchFSTypes(short low, short high, unsigned char partitionID) {
+fstype binarySearchFSTypes(short low, short high, unsigned char partitionID) {
 	short mid = (low + ((high - low) / 2));
 	unsigned char key = FILESYSTEMS[mid].key;
 	if (high > low) {
@@ -93,7 +108,8 @@ char* binarySearchFSTypes(short low, short high, unsigned char partitionID) {
 		}
 	}
 	if (key == partitionID) {
-		return FILESYSTEMS[mid].value;
+		return FILESYSTEMS[mid];
 	}
-	return "Unknown filesystem or no partition";
+	fstype unknown = {.key=-1, .value="Unknown filesystem or no partition"};
+	return unknown;
 }

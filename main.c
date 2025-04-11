@@ -8,10 +8,12 @@ int main(int argc, char *argv[]) {
 	int sectorSize = 0;
 	int lba = 0;
 	int address = 0;
+	int analyze = 0;
 
 	if (strcmp(argv[1], "--help") == 0) {
 		printf("0xdec0de\n");
 		printf("--help: shows this menu.\n");
+		printf("--analyze: print MBR analysis only.\n");
 		printf("--lbasize $SIZE: specify the LBA size to divide the output into, in bytes.\n");
 		printf("--sector $SECTOR: specify the sector to begin the output.\n");
 		printf("--address $ADDRESS: specify the address to begin the output, as a hexadecimal offset from 0, rounded down to the nearest 16-byte line.\n");
@@ -34,13 +36,10 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(argv[i], "--address") == 0) {
 			address = (int)strtol(argv[++i], NULL, 16);
 		}
+		else if (strcmp(argv[i], "--analyze") == 0) {
+			analyze = 1;
+		}
 	}
-
-	if (lba) {
-		address = (lba * sectorSize);
-	}
-
-	address -= (address % 16);
 
 	FILE *fptr = fopen(argv[1], "rb");
 	if (fptr == NULL) {
@@ -50,15 +49,20 @@ int main(int argc, char *argv[]) {
 
 	detectMBRFS(fptr, &sectorSize);
 
+	if (lba) {
+		address = (lba * sectorSize);
+	}
+
+	address -= (address % 16);
+
 	if (address) {
 		fseek(fptr, address, SEEK_SET);
 	}
-	
 
 	unsigned char data[16];
 	size_t n;
 	int secIdent = address;
-	while ((n = fread(data, sizeof(unsigned char), 16, fptr)) > 0) {
+	while (((n = fread(data, sizeof(unsigned char), 16, fptr)) > 0) && !analyze) {
 		
 		int n;
 		lba = (address / sectorSize);

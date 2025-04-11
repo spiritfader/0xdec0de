@@ -5,14 +5,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-void detectMBRFS(FILE *fptr, int *sectorSize);
-char* binarySearchFSTypes(short low, short high, unsigned char partitionID);
-
 #define NUM_FS_TYPES 39
 
 typedef struct {
 	unsigned char key;
 	char value[64];
+
 } fstype;
+
+typedef struct {
+	unsigned char status;
+	unsigned char chsBegin[3];
+	unsigned char fsID;
+	unsigned char chsEnd[3];
+	int firstLBA;
+	int sectorCount;
+} partinfo;
+
+void detectMBRFS(FILE *fptr, int *sectorSize);
+fstype binarySearchFSTypes(short low, short high, unsigned char partitionID);
 
 #endif
