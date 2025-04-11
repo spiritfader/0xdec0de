@@ -18,8 +18,8 @@ typedef struct {
 	unsigned char chsBegin[3];
 	unsigned char fsID;
 	unsigned char chsEnd[3];
-	int firstLBA;
-	int sectorCount;
+	unsigned int firstLBA;
+	unsigned int sectorCount;
 } partinfo;
 
 void detectMBRFS(FILE *fptr, int *sectorSize);

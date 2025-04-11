@@ -67,7 +67,7 @@ void detectMBRFS(FILE *fptr, int *sectorSize) {
 				printf("Inactive/Non-bootable");
 				break;
 			default:
-				if (partitionsInfo[i].status | 0x80) {
+				if (partitionsInfo[i].status & 0x80) {
 					printf("Active/Bootable");
 				}
 				else {
